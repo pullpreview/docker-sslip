@@ -1,9 +1,25 @@
-#### xip-pdns
+# docker-sslip
 
-This is the source of the [PowerDNS](http://powerdns.com/) pipe backend adapter powering [xip.io](http://xip.io/).
+[sslip.io](https://sslip.io), in a container.
 
-Install this on your system, adjust [etc/xip-pdns.conf](etc/xip-pdns.conf.example) to your liking, and configure PowerDNS as follows:
+## Build
 
-    launch=pipe
-    pipe-command=/path/to/xip-pdns/bin/xip-pdns /path/to/xip-pdns/etc/xip-pdns.conf
+```console
+$ docker build -t sslip .
+```
 
+## Run
+
+```console
+$ docker run -d -p 53:53/tcp -p 53:53/udp --name=sslip sslip
+```
+
+Additional configuration may be specified with the following environment variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| XIP_DOMAIN | xip.test | The root domain of the service |
+| XIP_ROOT_ADDRESSES | 127.0.0.1 | The IP addresses returned by an A-record lookup for the root domain |
+| XIP_NS_ADDRESSES | 127.0.0.1 | The IP addresses of the nameservers running the sslip container |
+| XIP_TIMESTAMP | 0 | SOA serial number |
+| XIP_TTL | 300 | TTL of all responses |
