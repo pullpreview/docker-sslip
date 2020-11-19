@@ -1,7 +1,7 @@
-FROM alpine
+FROM alpine:latest
 
-RUN apk --no-cache --repository http://nl.alpinelinux.org/alpine/edge/testing \
-        add powerdns bash
+RUN apk --no-cache \
+        add pdns bash
 
 ENV XIP_DOMAIN xip.test
 ENV XIP_ROOT_ADDRESSES 127.0.0.1
