@@ -59,7 +59,8 @@ log() {
 #
 XIP_DOMAIN_PATTERN="(^|\.)${XIP_DOMAIN//./\.}\$"
 NS_SUBDOMAIN_PATTERN="^ns-([0-9]+)\$"
-IP_SUBDOMAIN_PATTERN="(^|-)(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\$"
+IP_SUBDOMAIN_PATTERN1="(^|-)(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\$"
+IP_SUBDOMAIN_PATTERN2="^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))($|-)"
 
 qtype_is() {
   [ "$QTYPE" = "$1" ] || [ "$QTYPE" = "ANY" ]
@@ -82,8 +83,12 @@ subdomain_is_ns() {
   [[ "$SUBDOMAIN" =~ $NS_SUBDOMAIN_PATTERN ]]
 }
 
-subdomain_is_ip() {
-  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN ]]
+subdomain_is_ip1() {
+  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN1 ]]
+}
+
+subdomain_is_ip2() {
+  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN2 ]]
 }
 
 resolve_ns_subdomain() {
@@ -91,9 +96,14 @@ resolve_ns_subdomain() {
   echo "${XIP_NS_ADDRESSES[$index]}"
 }
 
-resolve_ip_subdomain() {
-  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN ]] || true
+resolve_ip1_subdomain() {
+  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN1 ]] || true
   echo "${BASH_REMATCH[2]//-/.}"
+}
+
+resolve_ip2_subdomain() {
+  [[ "$SUBDOMAIN" =~ $IP_SUBDOMAIN_PATTERN2 ]] || true
+  echo "${BASH_REMATCH[1]//-/.}"
 }
 
 answer_soa_query() {
@@ -123,7 +133,6 @@ answer_subdomain_a_query_for() {
     send_answer "A" "$address"
   fi
 }
-
 
 #
 # PowerDNS pipe backend implementation
@@ -155,8 +164,13 @@ while read_query; do
       if subdomain_is_ns; then
         answer_subdomain_a_query_for ns
 
-      elif subdomain_is_ip; then
-        answer_subdomain_a_query_for ip
+      elif subdomain_is_ip1; then
+	      log "ip1"
+        answer_subdomain_a_query_for ip1
+
+      elif subdomain_is_ip2; then
+	      log "ip2"
+        answer_subdomain_a_query_for ip2
 
       fi
     fi
